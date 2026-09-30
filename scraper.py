@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 # Guest Scrape
 def guestScrape():
   page.goto(os.environ['LEETIFY_ACCOUNT'])
+  print("Loading profile...")
 
   print(getRating())
 
