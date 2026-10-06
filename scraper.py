@@ -5,59 +5,49 @@ from dotenv import load_dotenv
 def getRating(type):
   expect(page.locator("div.content")).to_be_visible()
   if type =="leetify":
+    page.locator("button", has_text="Leetify Rating").click()
     leetifyDict = {}
     # Leetify Rating
-    leetifyDict.update({"Leetify Rating": page.locator("div.content").inner_text()})
-    # Leetify T Side Rating
-    leetifyDict.update({"T Side": "0"})
-    # Leetify CT Side Rating
-    leetifyDict.update({"CT Side": "0"})
+    tab = page.locator("app-profile-overview-recent-games-ratings")
+    leetifyDict.update({"Leetify Rating": tab.locator(".leetify-rating .content").inner_text()})
+    # Win Rate
+    for x in tab.locator(".win-rate").locator("> div").all():
+      leetifyDict.update({x.locator("dt").inner_text(): x.locator("dd").inner_text()})
+    for x in tab.locator(".stats").locator("> div").all():
+      leetifyDict.update({x.locator("dt").inner_text(): x.locator("dd").inner_text()})
+    # Side Ratings
+    leetifyStats = page.locator("div.sides").locator(".value").all()
+    # Side Labels
+    leetifyLabels = page.locator("div.sides").locator(".label").all()
+    for x in range(len(leetifyStats)):
+      # Side Label: Side Rating
+      leetifyDict.update({leetifyLabels[x].inner_text().replace(u'\xa0', u' '): leetifyStats[x].inner_text()})
+    page.locator("button", has_text="Top Stats").click()
     return leetifyDict
   if type=="aim":
     page.locator("button", has_text="Aim Stats").click()
     aimDict = {}
-    # Leetify Aim Rating
-    aimDict.update({"Aim Rating": page.locator("div.player-avg").nth(0).inner_text()})
-    # Headshot accuracy
-    aimDict.update({"Headshot Accuracy": "100%"}) # ! Temp Placeholder !
-    # Accuracy (Enemy Spotted)
-    aimDict.update({"Accuracy (Enemy Spotted)": "100%"}) # ! Temp Placeholder !
-    # Spray Accuracy
-    aimDict.update({"Spray Accuracy": "100%"}) # ! Temp Placeholder !
-    # Proper Counter-Strafing
-    aimDict.update({"Proper Counter-Strafing": "100%"}) # ! Temp Placeholder !
-    # Crosshair Placement
-    aimDict.update({"Crosshair Placement": "0°"}) # ! Temp Placeholder !
-    # Time to Damage
-    aimDict.update({"Time to Damage": "0ms"}) # ! Temp Placeholder !
-    # Accuracy (All Shots)
-    aimDict.update({"Accuracy (All Shots)": "100%"}) # ! Temp Placeholder !
-    # Headshot Kill Percentage
-    aimDict.update({"Headshot Kill Percentage": "100%"}) # ! Temp Placeholder !
-    return aimDict
+    aimAvgDict = {}
+    # For all 'li' elements in '.aim-rating'
+    for li in page.locator("div.aim-rating").locator("ul > li").all():
+      # Aim Rating Stat: Value
+      aimDict.update({li.locator(".player .label").inner_text(): li.locator(".player .value").inner_text()})
+      # Aim Rating Avg Stat: Value
+      aimAvgDict.update({li.locator(".player .label").inner_text()+" Avg": li.locator(".rank-avg .value").inner_text()})
+    page.locator("button", has_text="Top Stats").click()
+    return [aimDict, aimAvgDict]
   if type=="utility":
+    page.locator("button", has_text="Utility Stats").click()
     utilityDict = {}
-    # Leetify Utility Rating
-    utilityDict.update({"Utility Rating": page.locator("div.player-avg").nth(1).inner_text()})
-    # Quality Rating
-    utilityDict.update({"Quality Rating": "100"})
-    # Flashbangs Leading to Kills
-    utilityDict.update({"Flashbangs Leading to Kills": "100%"})
-    # Enemies Flashed per Flashbang
-    utilityDict.update({"Enemies Flashed per Flashbang": "5"})
-    # Friends Flashed per Flashbang
-    utilityDict.update({"Friends Flashed per Flashbang": "0"})
-    # Flash Blind Duration per Flashed Enemy
-    utilityDict.update({"Flash Blind Duration per Flashed Enemy": "5"})
-    # Damage to Enemies per HE
-    utilityDict.update({"Damage to Enemies per HE": "100"})
-    # Damage to Teammates per HE
-    utilityDict.update({"Damage to Teammates per HE": "0"})
-    # Unused Utility on Death
-    utilityDict.update({"Unused Utility on Death": "0$"})
-    # Quantity Rating
-    utilityDict.update({"Quantity Rating": "100"})
-    return utilityDict
+    utilityAvgDict = {}
+    # For all 'li' elements in '.utility-rating'
+    for li in page.locator("div.utility-rating").locator("ul > li").all():
+      # Utility Rating Stat: Value
+      utilityDict.update({li.locator(".player .label").inner_text(): li.locator(".player .value").inner_text()})
+      # Utility Rating Avg Stat: Value
+      utilityAvgDict.update({li.locator(".player .label").inner_text()+" Avg": li.locator(".rank-avg .value").inner_text()})
+    page.locator("button", has_text="Top Stats").click()
+    return [utilityDict, utilityAvgDict]
   else:
     return "! RUNTIME ERROR !"
 
@@ -71,8 +61,7 @@ with sync_playwright() as p:
   # ! Requires string validation ! #
   guestCS = ['guest', 'g']
   userCS = ['user', 'u']
-  #guestUserChoice = input("Guest or User? ")
-  guestUserChoice = "u"
+  guestUserChoice = input("Guest or User? ")
   if guestUserChoice.lower() in guestCS:
     # Login
     page.goto(os.environ['LEETIFY_ACCOUNT'])
@@ -97,17 +86,26 @@ with sync_playwright() as p:
     page.goto(os.environ['LEETIFY_ACCOUNT'])
     print("Loading profile...")
 
-    # Data Retrieval
+    ### Data Retrieval ###
     # Aiming Rating
-    print(getRating('aim'))
+    aimReturn = getRating('aim')
+    aimDict = aimReturn[0]
+    aimAvgDict = aimReturn[1]
+    print(">"+str(aimDict))
+    print(">"+str(aimAvgDict))
 
     # Utility Rating
-    print(getRating('utility'))
+    utilityReturn = getRating('utility')
+    utilityDict = utilityReturn[0]
+    utilityAvgDict = utilityReturn[1]
+    print(">"+str(utilityDict))
+    print(">"+str(utilityAvgDict))
 
     # Leetify Rating
-    print(getRating('leetify'))
+    leetifyDict = getRating('leetify')
+    print(leetifyDict)
 
-    # Debug
+    # ! Debug ! #
     page.screenshot(path="tss.user.png")
     # ! End ! #
 
