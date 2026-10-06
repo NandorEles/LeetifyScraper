@@ -64,7 +64,7 @@ with sync_playwright() as p:
   guestUserChoice = input("Guest or User? ")
   if guestUserChoice.lower() in guestCS:
     # Login
-    page.goto(os.environ['LEETIFY_ACCOUNT'])
+    page.goto(os.environ['GUEST_LEETIFY_ACCOUNT'])
     print("Loading profile...")
 
     # Data Retrieval
