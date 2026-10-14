@@ -12,6 +12,11 @@ A Python-based scraper for Leetify metrics.
 
 ----
 
+## What does the program do?
+
+At the moment, it goes to the user's profile and scrapes the basic data displayed there.
+Currently looking at navigating pages with more detailed information and therefore more data to play with.
+
 ## Basic Usage
 
 A `.env` file must be created using `.env.example` as a guide for the scraper to work.
